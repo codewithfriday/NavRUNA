@@ -1,0 +1,12 @@
+services:
+  navruna:
+    build: .
+    image: navruna:1.0.0
+    env_file: .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - navruna-data:/data
+    restart: unless-stopped
+volumes:
+  navruna-data:
