@@ -47,10 +47,10 @@ def main():
             pg.screenshot(path=str(IMG / f"{name}.png"), full_page=full)
             print("captured", name)
 
-        shot("01_login", "/login", wait=1200)
+        shot("01_login", "/", wait=1500)
         pg.evaluate(f"sessionStorage.setItem('navruna_token', {json.dumps(token)})")
         shot("02_dashboard", "/dashboard", wait=4000)
-        shot("03_ga_map", "/ga?aerodrome=WIII", wait=4000)
+        shot("03_ga_map", "/ga?aerodrome=WIII", click="Last 7 days", wait=4000)
         shot("04_ga_trend", "/ga?aerodrome=WIII&tab=trend", wait=3500)
         shot("05_ga_events", "/ga?tab=events", wait=3000)
         if ga_id:

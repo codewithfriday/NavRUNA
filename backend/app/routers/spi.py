@@ -113,8 +113,8 @@ def observations(code: str, period: str = "M", date_from: str | None = None, dat
                                         SpiObservation.period == period.upper(), SpiObservation.period_start >= start,
                                         SpiObservation.period_start <= end)
     m = Masker(user)
-    if breakdown is not None:
-        q = q.filter(SpiObservation.breakdown_key == breakdown)
+    if breakdown is not None or dims is None:  # no breakdown asked for = the total
+        q = q.filter(SpiObservation.breakdown_key == (breakdown or ""))
     rows = q.order_by(SpiObservation.period_start).all()
     if dims is not None:
         want = [d for d in dims.split("+") if d]

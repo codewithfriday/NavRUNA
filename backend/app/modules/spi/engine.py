@@ -226,7 +226,7 @@ def _doc9859(hist, value, run, P, direction):
 
 
 def _alert(db, spi, obs, P):
-    where = ", ".join(f"{k} {v}" for k, v in (obs.breakdown or {}).items() if k not in ("operator",)) or "all"
+    where = ", ".join(f"{k} {v}" if k != "operator" else "one operator" for k, v in (obs.breakdown or {}).items()) or "all"
     pname = {"D": "day", "W": "week", "M": "month"}[obs.period]
     link = f"/spis/{spi.code}?period={obs.period}&breakdown={obs.breakdown_key}"
     if obs.alert_state > 0:

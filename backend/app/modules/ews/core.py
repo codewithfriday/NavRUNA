@@ -53,19 +53,20 @@ def coverage_day(db: Session, icao: str, day: date, P: dict) -> EwsCoverage:
     reasons = []
     k = P["ews.coverage_mad_k"]
 
-    def far(x, series, label):
+    def far(x, series, label, floor):
         if x is None or len(series) < 4:
             return
         med = float(np.median(series))
-        mad = float(np.median(np.abs(np.array(series) - med))) * 1.4826 or max(1e-6, 0.05 * abs(med))
+        # a steady series has a MAD near 0; the floor stops tiny changes from looking anomalous
+        mad = max(float(np.median(np.abs(np.array(series) - med))) * 1.4826, floor(med))
         if abs(x - med) > k * mad:
             reasons.append(f"{label}: {x:.2f} against a usual {med:.2f}")
     if expected is not None and len(same_wd) >= 2:
         all_f = [v["flights"] for v in per_day.values()]
-        far(float(flights), all_f if len(same_wd) < 4 else same_wd, "flights seen")
-    far(gap, [v["gap"] for v in per_day.values()], "share of flights with gaps")
+        far(float(flights), all_f if len(same_wd) < 4 else same_wd, "flights seen", lambda m: max(2.0, 0.05 * abs(m)))
+    far(gap, [v["gap"] for v in per_day.values()], "share of flights with gaps", lambda m: 0.02)
     if low is not None:
-        far(low, [v["low"] / v["appr"] for v in per_day.values() if v["appr"]], "arrivals reaching 1,000 ft")
+        far(low, [v["low"] / v["appr"] for v in per_day.values() if v["appr"]], "arrivals reaching 1,000 ft", lambda m: 0.02)
     rec = db.query(EwsCoverage).filter_by(icao=icao, day=day).first() or EwsCoverage(icao=icao, day=day)
     rec.flights, rec.expected, rec.gap_share, rec.low_share, rec.anomaly, rec.reasons = flights, expected, gap, low, bool(reasons), reasons
     db.add(rec)
